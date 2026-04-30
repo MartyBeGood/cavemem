@@ -12,6 +12,10 @@ export function resolveDataDir(raw: string): string {
 }
 
 export function settingsPath(dataDir?: string): string {
+  if (!dataDir) {
+    const envPath = process.env.CAVEMEM_SETTINGS;
+    if (envPath) return resolveDataDir(envPath);
+  }
   const dir = resolveDataDir(dataDir ?? join(homedir(), DEFAULT_DIR));
   return join(dir, 'settings.json');
 }
