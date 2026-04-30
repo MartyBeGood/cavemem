@@ -105,6 +105,14 @@ export class MemoryStore {
     return this.storage.getObservations(ids).map((r) => toObservation(r, want));
   }
 
+  searchSummaries(query: string, limit?: number) {
+    const cap = limit ?? this.settings.search.defaultLimit;
+    return this.storage.searchSummaries(query, cap).map((r) => ({
+      ...r,
+      snippet: expand(r.snippet),
+    }));
+  }
+
   timeline(sessionId: string, aroundId?: number, limit?: number): Observation[] {
     return this.storage
       .timeline(sessionId, aroundId, limit)

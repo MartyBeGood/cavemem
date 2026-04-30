@@ -66,6 +66,23 @@ List recent sessions in reverse chronological order.
 
 Returns: `[ { id, ide, cwd, started_at, ended_at } ]`. Use `id` with `timeline` to navigate within a session.
 
+## `search_summaries`
+
+Search turn and session summaries by topic across all sessions.
+
+```json
+{
+  "name": "search_summaries",
+  "input": { "query": "turbo confirm dialogs", "limit": 10 }
+}
+```
+
+Returns: `[ { id, session_id, cwd, scope, ts, snippet, score } ]`
+
+`scope` is `"turn"` or `"session"`. `cwd` is the working directory of the session that produced the summary — useful for identifying which project the context came from. Summaries are already compact (compressed rollups of turn activity), so full content is returned directly rather than requiring a follow-up `get_observations` call.
+
+**When to use instead of `search`:** `search` queries raw observations (every tool call, every prompt). `search_summaries` queries distilled conclusions — what the agent decided or discovered. Prefer `search_summaries` when you want prior decisions, patterns, or findings on a topic; prefer `search` when you need specific detail or code from a past session.
+
 ## Contract stability
 
 Fields may be added. Existing fields will not be removed or renamed within a minor version.

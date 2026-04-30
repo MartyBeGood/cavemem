@@ -89,6 +89,16 @@ export function buildServer(store: MemoryStore, settings: Settings): McpServer {
   );
 
   server.tool(
+    'search_summaries',
+    'Search session summaries across all projects by topic. Returns turn- and session-scoped summaries with the project directory (cwd) so you can find related work from other sessions.',
+    { query: z.string().min(1), limit: z.number().int().positive().max(50).optional() },
+    async ({ query, limit }) => {
+      const hits = store.searchSummaries(query, limit);
+      return { content: [{ type: 'text', text: JSON.stringify(hits) }] };
+    },
+  );
+
+  server.tool(
     'list_sessions',
     'List recent sessions in reverse chronological order. Use to navigate before calling timeline.',
     { limit: z.number().int().positive().max(200).optional() },

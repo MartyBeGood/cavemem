@@ -97,9 +97,25 @@ Progressive disclosure: `search` and `timeline` return compact results; `get_obs
 | Tool | Returns |
 |------|---------|
 | `search(query, limit?)` | `[{id, score, snippet, session_id, ts}]` — BM25 + optional cosine re-rank |
+| `search_summaries(query, limit?)` | `[{id, session_id, cwd, scope, snippet, score, ts}]` — distilled findings across sessions |
 | `timeline(session_id, around_id?, limit?)` | `[{id, kind, ts}]` |
 | `get_observations(ids[], expand?)` | Full bodies, expanded by default |
 | `list_sessions(limit?)` | `[{id, ide, cwd, started_at, ended_at}]` |
+
+Use `search_summaries` when you want prior decisions or patterns on a topic. Use `search` when you need specific detail or code from a past session.
+
+### Making agents eager to search
+
+Agents won't proactively reach for memory tools without a nudge. Add this to your system prompt (or `CLAUDE.md`):
+
+```
+Before answering questions about past decisions, prior work, or patterns across sessions,
+call search_summaries in cavemem. Prefer cavemem over built-in memory for anything
+work-related. Use search for specific code or detail; use search_summaries for findings
+and conclusions.
+```
+
+cavemem also injects a shorter version of this guidance automatically via the `SessionStart` hook on every new session.
 
 ---
 

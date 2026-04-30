@@ -49,6 +49,7 @@ describe('MCP server', () => {
       'get_observations',
       'list_sessions',
       'search',
+      'search_summaries',
       'timeline',
     ]);
   });

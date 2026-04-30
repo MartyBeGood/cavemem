@@ -47,6 +47,16 @@ export interface NewSummary {
   ts?: number;
 }
 
+export interface SummarySearchHit {
+  id: number;
+  session_id: string;
+  cwd: string | null;
+  scope: 'turn' | 'session';
+  ts: number;
+  snippet: string;
+  score: number;
+}
+
 export interface SearchHit {
   id: number;
   session_id: string;

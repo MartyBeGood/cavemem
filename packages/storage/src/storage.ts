@@ -9,6 +9,7 @@ import type {
   SearchHit,
   SessionRow,
   SummaryRow,
+  SummarySearchHit,
 } from './types.js';
 
 export interface StorageOptions {
@@ -22,6 +23,7 @@ export class Storage {
     mkdirSync(dirname(dbPath), { recursive: true });
     this.db = new Database(dbPath, opts.readonly ? { readonly: true } : {});
     this.db.exec(SCHEMA_SQL);
+    this.backfillSummariesFts();
   }
 
   close(): void {
@@ -126,6 +128,48 @@ export class Storage {
     return this.db
       .prepare('SELECT * FROM summaries WHERE session_id = ? ORDER BY ts DESC')
       .all(sessionId) as SummaryRow[];
+  }
+
+  searchSummaries(query: string, limit = 10): SummarySearchHit[] {
+    if (!query.trim()) return [];
+    const rows = this.db
+      .prepare(
+        `SELECT s.id, s.session_id, s.scope, s.ts,
+                sess.cwd,
+                snippet(summaries_fts, 0, '[', ']', '…', 16) AS snippet,
+                bm25(summaries_fts) AS score
+         FROM summaries_fts
+         JOIN summaries s ON s.id = summaries_fts.rowid
+         JOIN sessions sess ON sess.id = s.session_id
+         WHERE summaries_fts MATCH ?
+         ORDER BY score ASC
+         LIMIT ?`,
+      )
+      .all(sanitizeMatch(query), limit) as Array<{
+      id: number;
+      session_id: string;
+      scope: 'turn' | 'session';
+      ts: number;
+      cwd: string | null;
+      snippet: string;
+      score: number;
+    }>;
+    return rows.map((r) => ({ ...r, score: -r.score }));
+  }
+
+  private backfillSummariesFts(): void {
+    const sumCount = (
+      this.db.prepare('SELECT COUNT(*) AS n FROM summaries').get() as { n: number }
+    ).n;
+    if (sumCount === 0) return;
+    // summaries_fts_docsize has one row per indexed document — zero means the
+    // FTS index is empty even if the base table is not (content= tables report
+    // the base table count on SELECT COUNT(*), not the index count).
+    const indexed = (
+      this.db.prepare('SELECT COUNT(*) AS n FROM summaries_fts_docsize').get() as { n: number }
+    ).n;
+    if (indexed > 0) return;
+    this.db.exec('INSERT INTO summaries_fts(rowid, content) SELECT id, content FROM summaries');
   }
 
   // --- search (BM25 via FTS5) ---

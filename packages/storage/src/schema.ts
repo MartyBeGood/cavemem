@@ -56,6 +56,24 @@ CREATE TRIGGER IF NOT EXISTS obs_au AFTER UPDATE ON observations BEGIN
   INSERT INTO observations_fts(rowid, content) VALUES (new.id, new.content);
 END;
 
+CREATE VIRTUAL TABLE IF NOT EXISTS summaries_fts USING fts5(
+  content,
+  content='summaries',
+  content_rowid='id',
+  tokenize='porter unicode61'
+);
+
+CREATE TRIGGER IF NOT EXISTS sum_ai AFTER INSERT ON summaries BEGIN
+  INSERT INTO summaries_fts(rowid, content) VALUES (new.id, new.content);
+END;
+CREATE TRIGGER IF NOT EXISTS sum_ad AFTER DELETE ON summaries BEGIN
+  INSERT INTO summaries_fts(summaries_fts, rowid, content) VALUES('delete', old.id, old.content);
+END;
+CREATE TRIGGER IF NOT EXISTS sum_au AFTER UPDATE ON summaries BEGIN
+  INSERT INTO summaries_fts(summaries_fts, rowid, content) VALUES('delete', old.id, old.content);
+  INSERT INTO summaries_fts(rowid, content) VALUES (new.id, new.content);
+END;
+
 CREATE TABLE IF NOT EXISTS embeddings (
   observation_id INTEGER PRIMARY KEY REFERENCES observations(id) ON DELETE CASCADE,
   model TEXT NOT NULL,

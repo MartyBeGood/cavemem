@@ -6,4 +6,5 @@ export type {
   NewObservation,
   NewSummary,
   SearchHit,
+  SummarySearchHit,
 } from './types.js';

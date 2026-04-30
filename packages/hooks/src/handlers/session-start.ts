@@ -21,6 +21,8 @@ export async function sessionStart(store: MemoryStore, input: HookInput): Promis
       return summaries.map((x) => x.content).join('\n');
     })
     .filter(Boolean);
-  if (hints.length === 0) return '';
-  return `## Prior-session context\n${hints.join('\n---\n')}`;
+  const guidance =
+    'When recalling past work, decisions, or context: search cavemem via `search_summaries` before falling back to built-in memory.';
+  if (hints.length === 0) return guidance;
+  return `${guidance}\n\n## Prior-session context\n${hints.join('\n---\n')}`;
 }
