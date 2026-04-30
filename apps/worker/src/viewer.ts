@@ -42,18 +42,52 @@ export function renderIndex(sessions: SessionRow[]): string {
 export function renderSession(
   session: SessionRow,
   observations: Array<{ id: number; kind: string; ts: number; content: string }>,
+  summaries: Array<{ id: number; scope: string; ts: number; content: string }> = [],
 ): string {
-  const rows = observations
-    .map(
-      (o) => `
+  const sessionSummaries = summaries.filter((s) => s.scope === 'session');
+  const turnSummaries = summaries.filter((s) => s.scope === 'turn');
+
+  const summarySection =
+    sessionSummaries.length > 0
+      ? `<h2>Session summary</h2>${sessionSummaries
+          .map(
+            (s) => `
+      <div class="card" style="border-color:#3a4a2a">
+        <div class="meta">session · ${new Date(s.ts).toISOString()}</div>
+        <pre>${esc(s.content)}</pre>
+      </div>`,
+          )
+          .join('')}`
+      : '';
+
+  const turnSection =
+    turnSummaries.length > 0
+      ? `<details style="margin-bottom:16px"><summary style="cursor:pointer;color:#8a94a3">${turnSummaries.length} turn summaries</summary>${turnSummaries
+          .map(
+            (s) => `
+      <div class="card" style="border-color:#2a3a4a">
+        <div class="meta">turn · ${new Date(s.ts).toISOString()}</div>
+        <pre>${esc(s.content)}</pre>
+      </div>`,
+          )
+          .join('')}</details>`
+      : '';
+
+  const obsSection =
+    observations.length > 0
+      ? `<h2>Observations</h2>${observations
+          .map(
+            (o) => `
       <div class="card">
         <div class="meta">#${o.id} · ${esc(o.kind)} · ${new Date(o.ts).toISOString()}</div>
         <pre>${esc(o.content)}</pre>
       </div>`,
-    )
-    .join('');
+          )
+          .join('')}`
+      : '';
+
   return layout(
     `cavemem · ${session.id}`,
-    `<h2>${esc(session.id)} <span class="meta">(${esc(session.ide)})</span></h2><p><a href="/">&larr; all sessions</a></p>${rows}`,
+    `<h2>${esc(session.id)} <span class="meta">(${esc(session.ide)})</span></h2><p><a href="/">&larr; all sessions</a></p>${summarySection}${turnSection}${obsSection}`,
   );
 }

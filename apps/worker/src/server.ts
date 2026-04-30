@@ -50,10 +50,12 @@ export function buildApp(store: MemoryStore, loop?: EmbedLoopHandle): Hono {
     const session = store.storage.getSession(id);
     if (!session) return c.notFound();
     const obs = store.timeline(id, undefined, 500);
+    const summaries = store.storage.listSummaries(id);
     return c.html(
       renderSession(
         session,
         obs.map((r) => ({ ...r, content: expand(r.content) })),
+        summaries.map((s) => ({ ...s, content: expand(s.content) })),
       ),
     );
   });
