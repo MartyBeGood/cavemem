@@ -83,6 +83,7 @@ Code blocks, URLs, paths, identifiers, and version numbers are never touched. Ho
 | `cavemem viewer` | Open the memory viewer in your browser |
 | `cavemem doctor` | Verify installation |
 | `cavemem search <query> [--limit N] [--no-semantic]` | Search memory (BM25 + cosine re-rank) |
+| `cavemem search summaries <query> [--limit N]` | Search session summaries by topic |
 | `cavemem compress <file>` | Compress a file with caveman grammar |
 | `cavemem reindex` | Rebuild FTS5 + vector index |
 | `cavemem export <out.jsonl>` | Dump observations to JSONL |

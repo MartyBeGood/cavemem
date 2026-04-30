@@ -6,7 +6,7 @@ import type { Command } from 'commander';
 import kleur from 'kleur';
 
 export function registerSearchCommand(program: Command): void {
-  program
+  const search = program
     .command('search <query>')
     .description('Query memory from the terminal')
     .option('--limit <n>', 'max results', '10')
@@ -36,6 +36,26 @@ export function registerSearchCommand(program: Command): void {
         for (const h of hits) {
           process.stdout.write(
             `${h.id}\t${h.score.toFixed(3)}\t${h.session_id}\t${h.snippet.replace(/\s+/g, ' ')}\n`,
+          );
+        }
+      } finally {
+        store.close();
+      }
+    });
+
+  search
+    .command('summaries <query>')
+    .description('Search session summaries by topic')
+    .option('--limit <n>', 'max results', '10')
+    .action(async (query: string, opts: { limit: string }) => {
+      const settings = loadSettings();
+      const dbPath = join(resolveDataDir(settings.dataDir), 'data.db');
+      const store = new MemoryStore({ dbPath, settings });
+      try {
+        const hits = store.searchSummaries(query, Number(opts.limit));
+        for (const h of hits) {
+          process.stdout.write(
+            `${h.score.toFixed(3)}\t${h.scope}\t${h.cwd ?? ''}\t${h.snippet.replace(/\s+/g, ' ')}\n`,
           );
         }
       } finally {
